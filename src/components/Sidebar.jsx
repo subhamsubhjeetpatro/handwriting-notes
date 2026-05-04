@@ -5,21 +5,23 @@ import PaperSettings from "./PaperSettings";
 import ColorSettings from "./ColorSettings";
 import SizeSlider from "./SizeSlider";
 import DownloadBar from "./DownloadBar";
+import { useState, useEffect } from "react";
 
 const S = {
-  aside: {
-    width: 420,
-    minWidth: 380,
-    background: "#1a2236",
-    borderRight: "1px solid rgba(255,255,255,0.07)",
+  mobileTopBar: {
     display: "flex",
-    flexDirection: "column",
-    overflow: "hidden",
-  },
-  header: {
-    padding: "18px 22px 12px",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: "14px 18px",
+    background: "#1a2236",
     borderBottom: "1px solid rgba(255,255,255,0.06)",
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 1100,
   },
+
   logo: {
     fontFamily: "'Playfair Display', Georgia, serif",
     fontSize: 21,
@@ -27,13 +29,41 @@ const S = {
     color: "#f0ead8",
     margin: 0,
   },
-  tagline: {
-    fontSize: 10,
-    color: "#5a7090",
-    marginTop: 2,
-    letterSpacing: "0.8px",
+
+  menuBtn: {
+    background: "transparent",
+    border: "none",
+    color: "#f0ead8",
+    fontSize: 26,
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  scroll: { flex: 1, overflowY: "auto", padding: "16px 22px" },
+
+  aside: (mobileOpen, isMobile) => ({
+    width: isMobile ? "85%" : 420,
+    maxWidth: 420,
+    minWidth: 0,
+    background: "#1a2236",
+    position: isMobile ? "fixed" : "relative",
+    top: isMobile ? 56 : 0,
+    left: isMobile ? (mobileOpen ? 0 : "-100%") : 0,
+    height: isMobile ? "calc(100vh - 56px)" : "100vh",
+    zIndex: 1050,
+    transition: "left 0.35s ease-in-out",
+    display: "flex",
+    flexDirection: "column",
+    overflow: "hidden",
+    borderRight: "1px solid rgba(255,255,255,0.07)",
+  }),
+
+  scroll: {
+    flex: 1,
+    overflowY: "auto",
+    padding: "16px 22px",
+  },
+
   footer: {
     padding: "12px 22px",
     borderTop: "1px solid rgba(255,255,255,0.06)",
@@ -41,6 +71,14 @@ const S = {
     flexDirection: "column",
     gap: 7,
   },
+
+  overlay: {
+    position: "fixed",
+    inset: 0,
+    background: "rgba(0,0,0,0.5)",
+    zIndex: 1040,
+  },
+
   genBtn: (rendering) => ({
     width: "100%",
     padding: 12,
@@ -57,7 +95,6 @@ const S = {
 };
 
 export default function Sidebar({
-  // state
   title,
   setTitle,
   showTitle,
@@ -78,7 +115,6 @@ export default function Sidebar({
   setHlColor,
   fontSize,
   setFontSize,
-  // actions
   ready,
   status,
   onGenerate,
@@ -86,61 +122,105 @@ export default function Sidebar({
   onPDF,
   onWord,
 }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 900);
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth <= 900;
+      setIsMobile(mobile);
+
+      if (!mobile) {
+        setMobileOpen(false);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const handleGenerate = () => {
+    onGenerate();
+    if (isMobile) setMobileOpen(false);
+  };
+
   return (
-    <aside style={S.aside}>
-      {/* Header */}
-      <div style={S.header}>
-        <h1 style={S.logo}>✒ HandNotes</h1>
-        <p style={S.tagline}>TEXT TO HANDWRITING CONVERTER</p>
-      </div>
+    <>
+      {/* Mobile Top Bar */}
+      {isMobile && (
+        <div style={S.mobileTopBar}>
+          <h1 style={S.logo}>✒ HandNotes</h1>
 
-      {/* Scrollable controls */}
-      <div style={S.scroll}>
-        <TitleSection
-          title={title}
-          setTitle={setTitle}
-          showTitle={showTitle}
-          setShowTitle={setShowTitle}
-        />
-        <TextSection text={text} setText={setText} />
-        <FontSelector font={font} setFont={setFont} />
-        <PaperSettings
-          paperStyle={paperStyle}
-          setPaperStyle={setPaperStyle}
-          paperColor={paperColor}
-          setPaperColor={setPaperColor}
-          pageHeight={pageHeight}
-          setPageHeight={setPageHeight}
-        />
-        <ColorSettings
-          inkColor={inkColor}
-          setInkColor={setInkColor}
-          hlColor={hlColor}
-          setHlColor={setHlColor}
-        />
-        <SizeSlider fontSize={fontSize} setFontSize={setFontSize} />
-      </div>
+          <button
+            style={S.menuBtn}
+            onClick={() => setMobileOpen((prev) => !prev)}
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? "✕" : "☰"}
+          </button>
+        </div>
+      )}
 
-      {/* Footer: generate + downloads */}
-      <div style={S.footer}>
-        <button
-          style={S.genBtn(status === "rendering")}
-          onClick={onGenerate}
-          disabled={!ready || status === "rendering"}
-        >
-          {status === "rendering"
-            ? "Rendering…"
-            : !ready
-              ? "Loading fonts…"
-              : "✦ Generate"}
-        </button>
-        <DownloadBar
-          visible={status === "done"}
-          onPNG={onPNG}
-          onPDF={onPDF}
-          onWord={onWord}
-        />
-      </div>
-    </aside>
+      {/* Overlay */}
+      {isMobile && mobileOpen && (
+        <div style={S.overlay} onClick={() => setMobileOpen(false)} />
+      )}
+
+      {/* Sidebar */}
+      <aside style={S.aside(mobileOpen, isMobile)}>
+        <div style={S.scroll}>
+          <TitleSection
+            title={title}
+            setTitle={setTitle}
+            showTitle={showTitle}
+            setShowTitle={setShowTitle}
+          />
+
+          <TextSection text={text} setText={setText} />
+
+          <FontSelector font={font} setFont={setFont} />
+
+          <PaperSettings
+            paperStyle={paperStyle}
+            setPaperStyle={setPaperStyle}
+            paperColor={paperColor}
+            setPaperColor={setPaperColor}
+            pageHeight={pageHeight}
+            setPageHeight={setPageHeight}
+          />
+
+          <ColorSettings
+            inkColor={inkColor}
+            setInkColor={setInkColor}
+            hlColor={hlColor}
+            setHlColor={setHlColor}
+          />
+
+          <SizeSlider fontSize={fontSize} setFontSize={setFontSize} />
+        </div>
+
+        {/* Footer */}
+        <div style={S.footer}>
+          <button
+            style={S.genBtn(status === "rendering")}
+            onClick={handleGenerate}
+            disabled={!ready || status === "rendering"}
+          >
+            {status === "rendering"
+              ? "Rendering…"
+              : !ready
+                ? "Loading fonts…"
+                : "✦ Generate"}
+          </button>
+
+          <DownloadBar
+            visible={status === "done"}
+            onPNG={onPNG}
+            onPDF={onPDF}
+            onWord={onWord}
+          />
+        </div>
+      </aside>
+    </>
   );
 }

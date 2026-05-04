@@ -26,6 +26,25 @@ const ROOT_STYLE = {
   overflow: "hidden",
 };
 
+const TAB_BAR = {
+  display: "flex",
+  background: "#1a2236",
+  borderBottom: "1px solid rgba(255,255,255,0.07)",
+  flexShrink: 0,
+};
+
+const tabBtn = (active) => ({
+  flex: 1,
+  padding: "13px",
+  border: "none",
+  background: "none",
+  color: active ? "#4a7eff" : "#5a7090",
+  fontSize: 13,
+  fontWeight: active ? 600 : 400,
+  borderBottom: active ? "2px solid #4a7eff" : "2px solid transparent",
+  cursor: "pointer",
+});
+
 const GLOBAL_CSS = `
   @keyframes spin { to { transform: rotate(360deg); } }
   ::-webkit-scrollbar { width: 4px; }
@@ -34,10 +53,13 @@ const GLOBAL_CSS = `
     appearance: none; width: 14px; height: 14px;
     border-radius: 50%; background: #4a7eff; cursor: pointer;
   }
+  canvas { max-width: 100%; height: auto; }
 `;
 
 export default function HandwritingNotes() {
   // ── State ────────────────────────────────────────────────────────────────
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  const [activeTab, setActiveTab] = useState("settings");
   const [text, setText] = useState(SAMPLE_TEXT);
   const [title, setTitle] = useState("Study Notes");
   const [showTitle, setShowTitle] = useState(true);
@@ -51,6 +73,13 @@ export default function HandwritingNotes() {
   const [ready, setReady] = useState(false);
   const [status, setStatus] = useState("idle");
   const [pages, setPages] = useState([]);
+
+  // ── Mobile detection ────────────────────────────────────────────────────
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
 
   // ── Load fonts + jsPDF ───────────────────────────────────────────────────
   useEffect(() => {
