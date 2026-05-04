@@ -42,7 +42,7 @@ const S = {
   },
 
   aside: (mobileOpen, isMobile) => ({
-    width: isMobile ? "85%" : 420,
+    width: isMobile ? "100%" : 420,
     maxWidth: 420,
     minWidth: 0,
     background: "#1a2236",
@@ -61,15 +61,21 @@ const S = {
   scroll: {
     flex: 1,
     overflowY: "auto",
-    padding: "16px 22px",
+    padding: "16px 18px 110px", // extra bottom spacing for footer visibility
   },
 
   footer: {
-    padding: "12px 22px",
+    padding: "12px 18px",
     borderTop: "1px solid rgba(255,255,255,0.06)",
     display: "flex",
     flexDirection: "column",
-    gap: 7,
+    gap: 8,
+    background: "#1a2236",
+    position: "sticky",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 20,
   },
 
   overlay: {
@@ -92,6 +98,14 @@ const S = {
     fontWeight: 600,
     cursor: rendering ? "default" : "pointer",
   }),
+
+  downloadWrap: {
+    width: "100%",
+    display: "flex",
+    flexWrap: "wrap",
+    gap: 8,
+    justifyContent: "center",
+  },
 };
 
 export default function Sidebar({
@@ -122,7 +136,7 @@ export default function Sidebar({
   onPDF,
   onWord,
 }) {
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(window.innerWidth > 900);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 900);
 
   useEffect(() => {
@@ -131,6 +145,8 @@ export default function Sidebar({
       setIsMobile(mobile);
 
       if (!mobile) {
+        setMobileOpen(true);
+      } else {
         setMobileOpen(false);
       }
     };
@@ -141,7 +157,7 @@ export default function Sidebar({
 
   const handleGenerate = () => {
     onGenerate();
-    if (isMobile) setMobileOpen(false);
+    // keep sidebar accessible so download buttons remain visible
   };
 
   return (
@@ -213,12 +229,14 @@ export default function Sidebar({
                 : "✦ Generate"}
           </button>
 
-          <DownloadBar
-            visible={status === "done"}
-            onPNG={onPNG}
-            onPDF={onPDF}
-            onWord={onWord}
-          />
+          <div style={S.downloadWrap}>
+            <DownloadBar
+              visible={status === "done"}
+              onPNG={onPNG}
+              onPDF={onPDF}
+              onWord={onWord}
+            />
+          </div>
         </div>
       </aside>
     </>
