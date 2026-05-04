@@ -49,7 +49,7 @@ const S = {
     position: isMobile ? "fixed" : "relative",
     top: isMobile ? 56 : 0,
     left: isMobile ? (mobileOpen ? 0 : "-100%") : 0,
-    height: isMobile ? "calc(100vh - 56px)" : "100vh",
+    height: isMobile ? "calc(100dvh - 56px)" : "100vh", // use dvh for mobile browsers
     zIndex: 1050,
     transition: "left 0.35s ease-in-out",
     display: "flex",
@@ -61,7 +61,8 @@ const S = {
   scroll: {
     flex: 1,
     overflowY: "auto",
-    padding: "16px 18px 110px", // extra bottom spacing for footer visibility
+    padding: "16px 18px",
+    paddingBottom: "20px", // remove huge bottom push
   },
 
   footer: {
@@ -71,11 +72,8 @@ const S = {
     flexDirection: "column",
     gap: 8,
     background: "#1a2236",
-    position: "sticky",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    zIndex: 20,
+    flexShrink: 0, // prevents footer from moving off-screen
+    marginTop: "auto", // pushes footer to bottom
   },
 
   overlay: {
