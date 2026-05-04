@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell($path = \"c:\\\\Users\\\\9800X 3D\\\\Downloads\\\\HandwrittenText\"; Get-ChildItem -Path $path -Recurse | ForEach-Object { $_.FullName })"
+    ]
+  }
+}
